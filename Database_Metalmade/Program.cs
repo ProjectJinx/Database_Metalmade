@@ -15,7 +15,7 @@ namespace Database_Metalmade
         {
             CreateDB();
             Creator c = new Creator();
-            // c.CreateUsers(100);
+            c.CreateUsers(100);
             Auswertung();
             Console.ReadLine();
         }
@@ -25,7 +25,22 @@ namespace Database_Metalmade
             string col = "";
             foreach(Tuple<string,string> t in columns)
             {
-                col += t.Item1 +" " +  t.Item2 + ",";
+                if (table == "team")
+                {
+                    if (t.Item1 == "team")
+                        col += t.Item1 + " " + t.Item2 + " PRIMARY KEY " + ",";
+                    else
+                        col += t.Item1 + " " + t.Item2 + ",";
+                }
+                else if(table == "einw")
+                    col += t.Item1 + " " + t.Item2 + ",";
+                else
+                {
+                    if (t.Item1 == "ma")
+                        col += t.Item1 + " " + t.Item2 + " PRIMARY KEY " + ",";
+                    else
+                        col += t.Item1 + " " + t.Item2 + ",";
+                }
             }
             col = col.Remove(col.Length - 1);
             using (var connection = new SqliteConnection("Data Source=metalmade.db"))
@@ -96,6 +111,24 @@ namespace Database_Metalmade
 
             Console.Write(rd.Read(request));
 
+            Console.WriteLine("Mitarbeiter mit den wenigsten Resturlauben:");
+            request =
+                @"	SELECT ma.nachname, ma.vorname, ma_restur.resturlaub
+	                    FROM ma, ma_restur
+	                    WHERE ma.ma=ma_restur.ma
+	                    ORDER BY ma_restur.resturlaub
+	                    ASC
+	                    LIMIT 1;";
+            Console.Write(rd.Read(request));
+
+            Console.WriteLine("Anzahl der Mitarbeiter, die weniger als 24 Resturlaubstage haben:");
+            request =
+                @"SELECT COUNT(ma.nachname) AS Anzahl
+	                FROM ma, ma_restur
+	                WHERE ma.ma=ma_restur.ma
+	                AND ma_restur.resturlaub<24";
+            Console.Write(rd.Read(request));
+
             Console.WriteLine("O.g. Mitarbeiter inklusive Vor- und Nachnamen, sortiert nach Resturlaub:");
             request =
                 @"SELECT DISTINCT ma.nachname, ma.vorname, ma_restur.resturlaub, ma_team.team, team.teamleiter
@@ -114,23 +147,7 @@ namespace Database_Metalmade
                     ASC;";
             Console.Write(rd.Read(request));
 
-            Console.WriteLine("Mitarbeiter mit den wenigsten Resturlauben:");
-            request =
-                @"	SELECT ma.nachname, ma.vorname, ma_restur.resturlaub
-	                    FROM ma, ma_restur
-	                    WHERE ma.ma=ma_restur.ma
-	                    ORDER BY ma_restur.resturlaub
-	                    ASC
-	                    LIMIT 1;";
-            Console.Write(rd.Read(request));
 
-            Console.WriteLine("Anzahl der Mitarbeiter, die weniger als 24 Resturlaubstage haben:");
-            request =
-                @"SELECT COUNT(ma.nachname) AS Anzahl
-	                FROM ma, ma_restur
-	                WHERE ma.ma=ma_restur.ma
-	                AND ma_restur.resturlaub<24";
-            Console.Write(rd.Read(request));
         }
 
     }
